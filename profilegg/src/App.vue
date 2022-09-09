@@ -9,10 +9,16 @@ import HelloWorld from './components/HelloWorld.vue'
 
     <div class="wrapper">
       <HelloWorld msg="You did it!" />
-
+      <div class="container text-center">
+        <div class="col">
+          column
+        </div>
+        <div class="col">
+          column 2
+        </div>
+      </div>
       <nav>
         <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
       </nav>
     </div>
   </header>
