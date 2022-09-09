@@ -1,2 +1,2 @@
 # Profile.gg
-trabalho de faculdade lmao
+A game profile generator.
