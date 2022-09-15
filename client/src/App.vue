@@ -1,29 +1,63 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+<script lang="ts">
+import ValorantAPI from 'unofficial-valorant-api'
+import type { AccountFetchOptions } from 'unofficial-valorant-api'
+import { defineComponent } from 'vue';
+
+const api = new ValorantAPI();
+
+export default defineComponent({
+  methods: {
+    fetchMatches(gn: string) {
+      this.loading_fetch = true;
+
+      const gameNameStrings = gn.split('#');
+      console.log(gameNameStrings);
+      const accountFetchOptions: AccountFetchOptions = {
+        name: gameNameStrings[0],
+        tag: gameNameStrings[1],
+      };
+
+      api.getAccount(accountFetchOptions)
+        .then((getAccountResponse) => {
+          const puuid: string = (getAccountResponse as any).data.puuid;
+          api.getMatchesByPUUID({ puuid, region: 'br' })
+            .then((getMatchesResponse) => {
+              console.log(getMatchesResponse);
+              this.loading_fetch = false;
+            });
+        });
+    },
+  },
+  data() {
+    return {
+      gameName: '',
+      loading_fetch: false,
+    }
+  },
+})
+
 </script>
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-      <div class="container text-center">
+    <div class="container">
+      <div class="row">
         <div class="col">
-          column
+          <input
+            style="max-width: 33vw; min-width: 512px;"
+            type="text"
+            placeholder="In-game Name#YOURTAG"
+            v-model="gameName"
+          />
         </div>
         <div class="col">
-          column 2
+          <button type="button" class="btn btn-primary" :disabled="loading_fetch" @click="fetchMatches(gameName)">
+            {{ loading_fetch ? "Fetching..." : "Fetch" }}
+          </button>
         </div>
       </div>
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-      </nav>
     </div>
   </header>
-
-  <RouterView />
 </template>
 
 <style scoped>
