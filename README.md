@@ -1,2 +1,2 @@
 # Profile.gg
-A game profile generator.
+A VALORANT profile generator, using Riot's APIs.
