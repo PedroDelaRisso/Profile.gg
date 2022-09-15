@@ -11,7 +11,6 @@ export default defineComponent({
       this.loading_fetch = true;
 
       const gameNameStrings = gn.split('#');
-      console.log(gameNameStrings);
       const accountFetchOptions: AccountFetchOptions = {
         name: gameNameStrings[0],
         tag: gameNameStrings[1],
