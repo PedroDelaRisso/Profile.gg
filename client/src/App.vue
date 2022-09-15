@@ -19,7 +19,7 @@ export default defineComponent({
       api.getAccount(accountFetchOptions)
         .then((getAccountResponse) => {
           const puuid: string = (getAccountResponse as any).data.puuid;
-          api.getMatchesByPUUID({ puuid, region: 'br' })
+          api.getMatchesByPUUID({ puuid: puuid, region: 'br' })
             .then((getMatchesResponse) => {
               console.log(getMatchesResponse);
               this.loading_fetch = false;
