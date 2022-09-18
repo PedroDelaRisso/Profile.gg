@@ -21,16 +21,20 @@ export default defineComponent({
           const puuid: string = (getAccountResponse as any).data.puuid;
           api.getMatchesByPUUID({ puuid: puuid, region: 'br' })
             .then((getMatchesResponse) => {
-              console.log(getMatchesResponse);
+              this.matches = (getMatchesResponse as any).data;
               this.loading_fetch = false;
             });
         });
     },
+    getPlayTime() {
+      console.log(this.matches);
+    }
   },
   data() {
     return {
       gameName: '',
       loading_fetch: false,
+      matches: [],
     }
   },
 })
@@ -52,6 +56,9 @@ export default defineComponent({
         <div class="col">
           <button type="button" class="btn btn-primary" :disabled="loading_fetch" @click="fetchMatches(gameName)">
             {{ loading_fetch ? "Fetching..." : "Fetch" }}
+          </button>
+          <button type="button" class="btn btn-primary" :disabled="!matches" @click="getPlayTime">
+            Get Play Time
           </button>
         </div>
       </div>
