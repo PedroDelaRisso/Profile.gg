@@ -1,6 +1,7 @@
 <script lang="ts">
 import ValorantAPI from 'unofficial-valorant-api'
 import type { AccountFetchOptions } from 'unofficial-valorant-api'
+import type IMatch from '@/constants/Match';
 import { defineComponent } from 'vue';
 
 const api = new ValorantAPI();
@@ -19,7 +20,7 @@ export default defineComponent({
       api.getAccount(accountFetchOptions)
         .then((getAccountResponse) => {
           const puuid: string = (getAccountResponse as any).data.puuid;
-          api.getMatchesByPUUID({ puuid: puuid, region: 'br' })
+          api.getMatchesByPUUID({ puuid: puuid, region: 'br', size: 10 })
             .then((getMatchesResponse) => {
               this.matches = (getMatchesResponse as any).data;
               this.loading_fetch = false;
@@ -27,7 +28,22 @@ export default defineComponent({
         });
     },
     getPlayTime() {
-      console.log(this.matches);
+      let millisseconds: number = 0;
+      (this.matches as IMatch[]).forEach((m) => {
+        millisseconds += m.metadata?.game_length as number;
+      });
+      this.hoursPlayed = (millisseconds / 1000) / 3600;
+      const hoursPlayed_stringSplit = this.hoursPlayed.toString().split('.');
+      const hours = Number.parseInt(hoursPlayed_stringSplit[0]);
+      const minutes_withDecimals = (this.hoursPlayed - hours) * 60;
+      const minutes =  Number.parseInt(minutes_withDecimals.toString().split('.')[0]);
+      const seconds = ((minutes_withDecimals - minutes) * 60).toString().split('.')[0];
+      this.hoursPlayed_Patched = `${hours} hours, ${minutes} minutes and ${seconds} seconds.`
+    }
+  },
+  watch: {
+    matches() {
+      this.getPlayTime();
     }
   },
   data() {
@@ -35,6 +51,8 @@ export default defineComponent({
       gameName: '',
       loading_fetch: false,
       matches: [],
+      hoursPlayed: 0,
+      hoursPlayed_Patched: '',
     }
   },
 })
@@ -44,30 +62,36 @@ export default defineComponent({
 <template>
   <header>
     <div class="container">
-      <div class="row">
-        <div class="col">
-          <input
-            style="max-width: 33vw; min-width: 512px;"
-            type="text"
-            placeholder="In-game Name#YOURTAG"
-            v-model="gameName"
-          />
+      <form action="">
+        <div class="row">
+          <div class="col-md-4">
+            <input
+              type="text"
+              placeholder="In-game Name#YOURTAG"
+              v-model="gameName"
+              @keyup.enter="fetchMatches(gameName)"
+            />
+          </div>
+          <div class="col-md-8">
+            <span>
+              Total playtime: {{ hoursPlayed_Patched }}
+            </span>
+          </div>
+          <div class="row">
+            <div class="col-md-auto">
+              <button type="submit" class="btn btn-primary" :disabled="loading_fetch" @click="fetchMatches(gameName)">
+                {{ loading_fetch ? "Fetching..." : "Fetch" }}
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="col">
-          <button type="button" class="btn btn-primary" :disabled="loading_fetch" @click="fetchMatches(gameName)">
-            {{ loading_fetch ? "Fetching..." : "Fetch" }}
-          </button>
-          <button type="button" class="btn btn-primary" :disabled="!matches" @click="getPlayTime">
-            Get Play Time
-          </button>
-        </div>
-      </div>
+      </form>
     </div>
   </header>
 </template>
 
 <style scoped>
-header {
+/* header {
   line-height: 1.5;
   max-height: 100vh;
 }
@@ -127,5 +151,5 @@ nav a:first-of-type {
     padding: 1rem 0;
     margin-top: 1rem;
   }
-}
+} */
 </style>
