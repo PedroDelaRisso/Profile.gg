@@ -1,8 +1,8 @@
 <script lang="ts">
 import ValorantAPI from 'unofficial-valorant-api'
 import type { AccountFetchOptions } from 'unofficial-valorant-api'
-import type IMatch from '@/constants/Match';
-import { defineComponent } from 'vue';
+import type IMatch from '@/constants/Match'
+import { defineComponent } from 'vue'
 
 const api = new ValorantAPI();
 
@@ -39,20 +39,43 @@ export default defineComponent({
       const minutes =  Number.parseInt(minutes_withDecimals.toString().split('.')[0]);
       const seconds = ((minutes_withDecimals - minutes) * 60).toString().split('.')[0];
       this.hoursPlayed_Patched = `${hours} hours, ${minutes} minutes and ${seconds} seconds.`
+    },
+    getTotalKills() {
+      (this.matches as IMatch[]).forEach((m) => {
+        m.kills?.forEach((k) => {
+          if (this.gameName.includes(k.killer_display_name as string)) {
+            this.totalKills++;
+          }
+        })
+      })
+    },
+    getMostPlayedAgent() {
+      const charactersPlayed = (this.matches.map((m: IMatch) => m.players?.all_players?.filter((p) => this.gameName.includes(p.name as string)).map((p) => p.character as string)) as any).flat();
+      var agents = { };
+      charactersPlayed.forEach((c: string) => {
+        if (isNaN((agents as any)[c])) {
+          (agents as any)[c] = 0;
+        }
+        (agents as any)[c]++;
+      })
+      console.log(agents);
     }
   },
   watch: {
     matches() {
       this.getPlayTime();
+      this.getTotalKills();
+      this.getMostPlayedAgent();
     }
   },
   data() {
     return {
-      gameName: '',
+      gameName: 'SantaCleiton#7191',
       loading_fetch: false,
       matches: [],
       hoursPlayed: 0,
       hoursPlayed_Patched: '',
+      totalKills: 0,
     }
   },
 })
@@ -73,9 +96,12 @@ export default defineComponent({
             />
           </div>
           <div class="col-md-8">
-            <span>
+            <p>
               Total playtime: {{ hoursPlayed_Patched }}
-            </span>
+            </p>
+            <p>
+              Total kills: {{ totalKills }}
+            </p>
           </div>
           <div class="row">
             <div class="col-md-auto">
