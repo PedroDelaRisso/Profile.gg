@@ -59,13 +59,63 @@ export default defineComponent({
         (agents as any)[c]++;
       })
       console.log(agents);
+    },
+    getHitData(){
+      let hitData = {
+        totalShots:0,
+        headShots:0,
+        bodyShots:0,
+        legShots:0 
+      };
+      
+      const stats = (this.matches.map( (m: IMatch) => m.players.all_players.filter((p) => this.gameName.includes(p.name as string)).map( (p) => {
+        return p.stats;
+      } ) ));
+      
+      stats.forEach((s) => {
+
+        console.log(s);
+        
+        hitData.headShots += s[0].headshots;
+        hitData.bodyShots += s[0].bodyshots;
+        hitData.legShots += s[0].legshots;
+
+        hitData.totalShots += (s[0].headshots + s[0].bodyshots + s[0].legshots);
+
+        console.log(hitData)
+        
+      })
+      console.log(hitData);
+      console.log(this.matches)
+    },
+    getWinRate(){
+      let matchsWon = 0;
+      this.matches.forEach((m : IMatch) => {
+        
+        const p = m.players.all_players.filter((p) => this.gameName.includes(p.name as string))[0];
+        console.log(p);
+        console.log(m.teams.blue);
+        
+        let whoWon = m.teams.blue.has_Won ? "Blue":"Red";
+
+        console.log(whoWon,p.team);
+        if(whoWon === p.team ){
+          console.log("Venceu")
+          matchsWon++;
+        }
+        
+      })
+      console.log("Winrate de", matchsWon/this.matches.length * 100,"%");
     }
   },
+  
   watch: {
     matches() {
       this.getPlayTime();
       this.getTotalKills();
       this.getMostPlayedAgent();
+      this.getHitData();
+      this.getWinRate();
     }
   },
   data() {
