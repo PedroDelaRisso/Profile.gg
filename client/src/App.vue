@@ -3,6 +3,9 @@ import ValorantAPI from 'unofficial-valorant-api'
 import type { AccountFetchOptions } from 'unofficial-valorant-api'
 import type IMatch from '@/constants/Match'
 import { defineComponent } from 'vue'
+import * as htmlToImage from 'html-to-image';
+import { toPng } from 'html-to-image';
+
 
 const api = new ValorantAPI();
 
@@ -205,14 +208,17 @@ export default defineComponent({
       }
     },
     downloadImage() {
-      const myCanvas = document.getElementById("myCanvas") as HTMLCanvasElement;
-
-      const a = document.createElement('a');
-      a.href = myCanvas.toDataURL();
-      a.download = `perfil-${this.gameName.split('#')[0]}.png`;
-      a.click();
-
-      document.body.appendChild(a);
+      const node = document.getElementById('body2') as HTMLElement;
+      const gameName = this.gameName;
+      htmlToImage.toPng(node)
+        .then(function (dataUrl) {
+          console.log(dataUrl);
+          var link = document.createElement('a');
+          link.download = `${gameName.split('#')[0]}-profile.png`;
+          link.href = dataUrl;
+          link.click();
+        });
+        // `${this.gamename}-profile.png`
     },
     getImageUrl(name: string) {
         return new URL(name, import.meta.url).href;
@@ -227,7 +233,7 @@ export default defineComponent({
       this.getHitData();
       this.getWinRate();
       this.getPlayerRank();
-      this.downloadImage();
+      // this.downloadImage();
     }
   },
   data() {
@@ -259,7 +265,7 @@ export default defineComponent({
 
 <template>
 
-  <body id="body1" v-if="!matches.length">
+  <body id="body1" :style="`${matches.length ? 'display: none' : ''}`">
     <div class="container1">
       <form action="">
         <div class="content1">
@@ -275,80 +281,77 @@ export default defineComponent({
     </div>
   </body>
 
-  <body id="body2" v-else>
-    <canvas id="myCanvas">
-      <div class="content2">
-        <div class="side-bar2">
-          <span class="nick2">{{gameName.split('#')[0]}}</span>
-          <div class="group-char2">
-            <img :src="mostPlayedAgentImage" class="char-img2">
-            <span class="char-base2">.</span>
-          </div>
-          <span class="char-name2">{{ mostPlayedAgent.toUpperCase() }}</span>
+  <body id="body2" :style="`${matches.length ? '' : 'display: none;'}`">
+    <div class="content2">
+      <div class="side-bar2">
+        <span class="nick2">{{gameName.split('#')[0]}}</span>
+        <div class="group-char2">
+          <img :src="mostPlayedAgentImage" class="char-img2">
+          <span class="char-base2">.</span>
         </div>
-        <div class="main-content2">
-          <div class="row2">
-            <div class="stat-comp2">
-              <img src="@/assets/skull.png" class="img-stat2">
-              <div class="stat-group2">
-                <span class="stat-title2">Abates Totais:</span>
-                <span class="stat-info2">{{ totalKills }}</span>
-              </div>
-            </div>
-            <div class="stat-comp2">
-              <img src="@/assets/clock.png" class="img-stat2">
-              <div class="stat-group2">
-                <span class="stat-title2">Horas jogadas:</span>
-                <span class="stat-info2">{{ hoursPlayed_Patched }}</span>
-              </div>
+        <span class="char-name2">{{ mostPlayedAgent.toUpperCase() }}</span>
+      </div>
+      <div class="main-content2">
+        <div class="row2">
+          <div class="stat-comp2">
+            <img src="@/assets/skull.png" class="img-stat2">
+            <div class="stat-group2">
+              <span class="stat-title2">Abates Totais:</span>
+              <span class="stat-info2">{{ totalKills }}</span>
             </div>
           </div>
-          <div class="row2">
-            <div class="rank-comp2" v-if="playerRank.image">
-              <span class="stat-title2">ELO:</span>
-              <img :src="getImageUrl(playerRank.image)" class="img-stat2">
-              <span class="stat-title2">{{ playerRank.name.toUpperCase() }}</span>
-            </div>
-            <div class="stat-comp2">
-              <img src="@/assets/trophy.png" class="img-stat2">
-              <div class="stat-group2">
-                <span class="stat-title2">Winrate:</span>
-                <span class="stat-info2">{{ winRate }}%</span>
-              </div>
+          <div class="stat-comp2">
+            <img src="@/assets/clock.png" class="img-stat2">
+            <div class="stat-group2">
+              <span class="stat-title2">Horas jogadas:</span>
+              <span class="stat-info2">{{ hoursPlayed_Patched }}</span>
             </div>
           </div>
-  
-          <div class="row2">
-            <div class="best-map2">
-              <span>Melhor mapa:</span>
-              <img src="@/assets/bind.png">
-              <span>BIND</span>
+        </div>
+        <div class="row2">
+          <div class="rank-comp2" v-if="playerRank.image">
+            <span class="stat-title2">ELO:</span>
+            <img :src="getImageUrl(playerRank.image)" class="img-stat2">
+            <span class="stat-title2">{{ playerRank.name.toUpperCase() }}</span>
+          </div>
+          <div class="stat-comp2">
+            <img src="@/assets/trophy.png" class="img-stat2">
+            <div class="stat-group2">
+              <span class="stat-title2">Winrate:</span>
+              <span class="stat-info2">{{ winRate }}%</span>
             </div>
-            <div class="hit-comp2">
-              <span class="title2">Hits Locations:</span>
-              <div class="dummy-comp2">
-                <div class="data-hits2">
-                  <div class="hit-info2">
-                    <span class="sub-title2">HEAD:</span>
-                    <span class="sub-title2">{{ ((hitData.headShots / hitData.totalShots) * 100).toFixed(2) }}%</span>
-                  </div>
-                  <div class="hit-info2">
-                    <span class="sub-title2">BODY:</span>
-                    <span class="sub-title2">{{ ((hitData.bodyShots / hitData.totalShots) * 100).toFixed(2) }}%</span>
-                  </div>
-                  <div class="hit-info2">
-                    <span class="sub-title2">LEG:</span>
-                    <span class="sub-title2">{{ ((hitData.legShots / hitData.totalShots) * 100).toFixed(2) }}%</span>
-                  </div>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="best-map2">
+            <span>Melhor mapa:</span>
+            <img src="@/assets/bind.png">
+            <span>BIND</span>
+          </div>
+          <div class="hit-comp2">
+            <span class="title2">Precisão:</span>
+            <div class="dummy-comp2">
+              <div class="data-hits2">
+                <div class="hit-info2">
+                  <span class="sub-title2">CABEÇA:</span>
+                  <span class="sub-title2">{{ ((hitData.headShots / hitData.totalShots) * 100).toFixed(2) }}%</span>
                 </div>
-                <img src="@/assets/body.png">
+                <div class="hit-info2">
+                  <span class="sub-title2">CORPO:</span>
+                  <span class="sub-title2">{{ ((hitData.bodyShots / hitData.totalShots) * 100).toFixed(2) }}%</span>
+                </div>
+                <div class="hit-info2">
+                  <span class="sub-title2">PERNAS:</span>
+                  <span class="sub-title2">{{ ((hitData.legShots / hitData.totalShots) * 100).toFixed(2) }}%</span>
+                </div>
               </div>
+              <img src="@/assets/body.png">
             </div>
           </div>
         </div>
       </div>
-      <div class="triangle"></div>
-    </canvas>
+    </div>
   </body>
 </template>
 
