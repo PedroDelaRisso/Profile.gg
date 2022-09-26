@@ -36,9 +36,9 @@ export default defineComponent({
       const hoursPlayed_stringSplit = this.hoursPlayed.toString().split('.');
       const hours = Number.parseInt(hoursPlayed_stringSplit[0]);
       const minutes_withDecimals = (this.hoursPlayed - hours) * 60;
-      const minutes =  Number.parseInt(minutes_withDecimals.toString().split('.')[0]);
+      const minutes = Number.parseInt(minutes_withDecimals.toString().split('.')[0]);
       const seconds = ((minutes_withDecimals - minutes) * 60).toString().split('.')[0];
-      this.hoursPlayed_Patched = `${hours} hours, ${minutes} minutes and ${seconds} seconds.`
+      this.hoursPlayed_Patched = `${hours} horas, ${minutes} minutos e ${seconds} segundos.`
     },
     getTotalKills() {
       (this.matches as IMatch[]).forEach((m) => {
@@ -50,65 +50,167 @@ export default defineComponent({
       })
     },
     getMostPlayedAgent() {
-      const charactersPlayed = (this.matches.map((m: IMatch) => m.players?.all_players?.filter((p) => this.gameName.includes(p.name as string)).map((p) => p.character as string)) as any).flat();
-      var agents = { };
-      charactersPlayed.forEach((c: string) => {
-        if (isNaN((agents as any)[c])) {
-          (agents as any)[c] = 0;
+      const charactersPlayed = (this.matches.map((m: IMatch) => m.players?.all_players?.filter((p) => this.gameName.includes(p.name as string)).map((p) => ({ character: p.character as string, assets: p.assets }))) as any).flat();
+      var agents: Object = {};
+      var max = '';
+      let maxImage = '';
+      var maxNumber = 0;
+      charactersPlayed.forEach((c: ({ character: string, assets: any })) => {
+        console.log(c);
+        if (isNaN((agents as any)[c.character])) {
+          (agents as any)[c.character] = 0;
         }
-        (agents as any)[c]++;
-      })
-      console.log(agents);
+        (agents as any)[c.character]++;
+        if ((agents as any)[c.character] > maxNumber) {
+          maxNumber = (agents as any)[c.character];
+          max = c.character;
+          maxImage = c.assets.agent.full;
+        }
+      });
+      this.mostPlayedAgent = max;
+      this.mostPlayedAgentImage = maxImage;
     },
-    getHitData(){
-      let hitData = {
-        totalShots:0,
-        headShots:0,
-        bodyShots:0,
-        legShots:0 
-      };
-      
-      const stats = (this.matches.map( (m: IMatch) => m.players.all_players.filter((p) => this.gameName.includes(p.name as string)).map( (p) => {
+    getHitData() {
+      const stats = (this.matches.map((m: IMatch) => m.players.all_players.filter((p) => this.gameName.includes(p.name as string)).map((p) => {
         return p.stats;
-      } ) ));
-      
+      })));
+
       stats.forEach((s) => {
 
-        console.log(s);
-        
-        hitData.headShots += s[0].headshots;
-        hitData.bodyShots += s[0].bodyshots;
-        hitData.legShots += s[0].legshots;
 
-        hitData.totalShots += (s[0].headshots + s[0].bodyshots + s[0].legshots);
+        this.hitData.headShots += s[0].headshots;
+        this.hitData.bodyShots += s[0].bodyshots;
+        this.hitData.legShots += s[0].legshots;
 
-        console.log(hitData)
-        
+        this.hitData.totalShots += (s[0].headshots + s[0].bodyshots + s[0].legshots);
+
+
       })
-      console.log(hitData);
-      console.log(this.matches)
     },
-    getWinRate(){
-      let matchsWon = 0;
-      this.matches.forEach((m : IMatch) => {
-        
-        const p = m.players.all_players.filter((p) => this.gameName.includes(p.name as string))[0];
-        console.log(p);
-        console.log(m.teams.blue);
-        
-        let whoWon = m.teams.blue.has_Won ? "Blue":"Red";
+    getWinRate() {
+      let matchesWon = 0;
+      this.matches.forEach((m: IMatch) => {
 
-        console.log(whoWon,p.team);
-        if(whoWon === p.team ){
-          console.log("Venceu")
-          matchsWon++;
+        const p = m.players.all_players.filter((p) => this.gameName.includes(p.name as string))[0];
+
+        let whoWon = m.teams.blue.has_Won ? "Blue" : "Red";
+
+        if (whoWon === p.team) {
+          matchesWon++;
         }
-        
+        this.winRate = ((matchesWon / this.matches.length) * 100);
       })
-      console.log("Winrate de", matchsWon/this.matches.length * 100,"%");
+    },
+    getPlayerRank() {
+      const player = (this.matches.map((m: IMatch) => m.players?.all_players?.filter((p) => this.gameName.includes(p.name as string))[0])[0]);
+      switch (player.currenttier_patched) {
+        case 'Iron 1':
+          this.playerRank.image = './assets/rank_png/Iron_1_Rank.png'
+          this.playerRank.name = 'Ferro 1'
+          break;
+        case 'Iron 2':
+          this.playerRank.image = './assets/rank_png/Iron_2_Rank.png'
+          this.playerRank.name = 'Ferro 2'
+          break;
+        case 'Iron 3':
+          this.playerRank.image = './assets/rank_png/Iron_3_Rank.png'
+          this.playerRank.name = 'Ferro 3'
+          break;
+        case 'Bronze 1':
+          this.playerRank.image = './assets/rank_png/Bronze_1_Rank.png'
+          this.playerRank.name = 'Bronze 1'
+          break;
+        case 'Bronze 2':
+          this.playerRank.image = './assets/rank_png/Bronze_2_Rank.png'
+          this.playerRank.name = 'Bronze 2'
+          break;
+        case 'Bronze 3':
+          this.playerRank.image = './assets/rank_png/Bronze_3_Rank.png'
+          this.playerRank.name = 'Bronze 3'
+          break;
+        case 'Silver 1':
+          this.playerRank.image = './assets/rank_png/Silver_1_Rank.png'
+          this.playerRank.name = 'Prata 1'
+          break;
+        case 'Silver 2':
+          this.playerRank.image = './assets/rank_png/Silver_2_Rank.png'
+          this.playerRank.name = 'Prata 2'
+          break;
+        case 'Silver 3':
+          this.playerRank.image = './assets/rank_png/Silver_3_Rank.png'
+          this.playerRank.name = 'Prata 3'
+          break;
+        case 'Gold 1':
+          this.playerRank.image = './assets/rank_png/Gold_1_Rank.png'
+          this.playerRank.name = 'Ouro 1'
+          break;
+        case 'Gold 2':
+          this.playerRank.image = './assets/rank_png/Gold_2_Rank.png'
+          this.playerRank.name = 'Ouro 2'
+          break;
+        case 'Gold 3':
+          this.playerRank.image = './assets/rank_png/Gold_3_Rank.png'
+          this.playerRank.name = 'Ouro 3'
+          break;
+        case 'Platinum 1':
+          this.playerRank.image = './assets/rank_png/Platinum_1_Rank.png'
+          this.playerRank.name = 'Platina 1'
+          break;
+        case 'Platinum 2':
+          this.playerRank.image = './assets/rank_png/Platinum_2_Rank.png'
+          this.playerRank.name = 'Platina 2'
+          break;
+        case 'Platinum 3':
+          this.playerRank.image = './assets/rank_png/Platinum_3_Rank.png'
+          this.playerRank.name = 'Platina 3'
+          break;
+        case 'Diamond 1':
+          this.playerRank.image = './assets/rank_png/Diamond_1_Rank.png'
+          this.playerRank.name = 'Diamante 1'
+          break;
+        case 'Diamond 2':
+          this.playerRank.image = './assets/rank_png/Diamond_2_Rank.png'
+          this.playerRank.name = 'Diamante 2'
+          break;
+        case 'Diamond 3':
+          this.playerRank.image = './assets/rank_png/Diamond_3_Rank.png'
+          this.playerRank.name = 'Diamante 3'
+          break;
+        case 'Ascendant 1':
+          this.playerRank.image = './assets/rank_png/Ascendant_1_Rank.png'
+          this.playerRank.name = 'Ascendente 1'
+          break;
+        case 'Ascendant 2':
+          this.playerRank.image = './assets/rank_png/Ascendant_2_Rank.png'
+          this.playerRank.name = 'Ascendente 2'
+          break;
+        case 'Ascendant 3':
+          this.playerRank.image = './assets/rank_png/Ascendant_3_Rank.png'
+          this.playerRank.name = 'Ascendente 3'
+          break;
+        case 'Immortal 1':
+          this.playerRank.image = './assets/rank_png/Immortal_1_Rank.png'
+          this.playerRank.name = 'Imortal 1'
+          break;
+        case 'Immortal 2':
+          this.playerRank.image = './assets/rank_png/Immortal_2_Rank.png'
+          this.playerRank.name = 'Imortal 2'
+          break;
+        case 'Immortal 3':
+          this.playerRank.image = './assets/rank_png/Immortal_3_Rank.png'
+          this.playerRank.name = 'Imortal 3'
+          break;
+        case 'Radiant':
+          this.playerRank.image = './assets/rank_png/Radiant_Rank.png'
+          this.playerRank.name = 'Radiante'
+          break;
+      }
+    },
+    getImageUrl(name: string) {
+        return new URL(name, import.meta.url).href;
     }
   },
-  
+
   watch: {
     matches() {
       this.getPlayTime();
@@ -116,6 +218,7 @@ export default defineComponent({
       this.getMostPlayedAgent();
       this.getHitData();
       this.getWinRate();
+      this.getPlayerRank();
     }
   },
   data() {
@@ -126,6 +229,19 @@ export default defineComponent({
       hoursPlayed: 0,
       hoursPlayed_Patched: '',
       totalKills: 0,
+      winRate: 0.0,
+      hitData: {
+        totalShots: 0,
+        headShots: 0,
+        bodyShots: 0,
+        legShots: 0,
+      },
+      mostPlayedAgent: '',
+      mostPlayedAgentImage: '',
+      playerRank: {
+        image: '',
+        name: '',
+      }
     }
   },
 })
@@ -133,99 +249,98 @@ export default defineComponent({
 </script>
 
 <template>
-  <header>
-    <div class="container">
+
+  <body id="body1" v-if="!matches.length">
+    <div class="container1">
       <form action="">
-        <div class="row">
-          <div class="col-md-4">
-            <input
-              type="text"
-              placeholder="In-game Name#YOURTAG"
-              v-model="gameName"
-              @keyup.enter="fetchMatches(gameName)"
-            />
+        <div class="content1">
+          <div class="nick-modal1">
+            <span id="label-nametag">Coloque seu nick e sua tag</span>
+            <input type="text" placeholder="Nickname#TAG" v-model="gameName" @keyup.enter="fetchMatches(gameName)" />
           </div>
-          <div class="col-md-8">
-            <p>
-              Total playtime: {{ hoursPlayed_Patched }}
-            </p>
-            <p>
-              Total kills: {{ totalKills }}
-            </p>
-          </div>
-          <div class="row">
-            <div class="col-md-auto">
-              <button type="submit" class="btn btn-primary" :disabled="loading_fetch" @click="fetchMatches(gameName)">
-                {{ loading_fetch ? "Fetching..." : "Fetch" }}
-              </button>
-            </div>
-          </div>
+          <button type="submit" class="button1 color-red" :disabled="loading_fetch" @click="fetchMatches(gameName)">
+            {{ loading_fetch ? "Gerando..." : "Gerar" }}
+          </button>
         </div>
       </form>
     </div>
-  </header>
+  </body>
+
+  <body id="body2" v-else>
+    <div class="content2">
+      <div class="side-bar2">
+        <span class="nick2">{{gameName.split('#')[0]}}</span>
+        <div class="group-char2">
+          <img :src="mostPlayedAgentImage" class="char-img2">
+          <span class="char-base2">.</span>
+        </div>
+        <span class="char-name2">{{ mostPlayedAgent.toUpperCase() }}</span>
+      </div>
+      <div class="main-content2">
+        <div class="row2">
+          <div class="stat-comp2">
+            <img src="@/assets/skull.png" class="img-stat2">
+            <div class="stat-group2">
+              <span class="stat-title2">Abates Totais:</span>
+              <span class="stat-info2">{{ totalKills }} kills</span>
+            </div>
+          </div>
+          <div class="stat-comp2">
+            <img src="@/assets/clock.png" class="img-stat2">
+            <div class="stat-group2">
+              <span class="stat-title2">Horas jogadas:</span>
+              <span class="stat-info2">{{ hoursPlayed_Patched }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="rank-comp2">
+            <span class="stat-title2">ELO:</span>
+            <img :src="getImageUrl(playerRank.image)" class="img-stat2">
+            <span class="stat-title2">{{ playerRank.name.toUpperCase() }}</span>
+          </div>
+          <div class="stat-comp2">
+            <img src="@/assets/trophy.png" class="img-stat2">
+            <div class="stat-group2">
+              <span class="stat-title2">Winrate:</span>
+              <span class="stat-info2">{{ winRate }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="best-map2">
+            <span>Melhor mapa:</span>
+            <img src="@/assets/bind.png">
+            <span>BIND</span>
+          </div>
+          <div class="hit-comp2">
+            <span class="title2">Hits Locations:</span>
+            <div class="dummy-comp2">
+              <div class="data-hits2">
+                <div class="hit-info2">
+                  <span class="sub-title2">HEAD:</span>
+                  <span class="sub-title2">{{ ((hitData.headShots / hitData.totalShots) * 100).toFixed(2) }}%</span>
+                </div>
+                <div class="hit-info2">
+                  <span class="sub-title2">BODY:</span>
+                  <span class="sub-title2">{{ ((hitData.bodyShots / hitData.totalShots) * 100).toFixed(2) }}%</span>
+                </div>
+                <div class="hit-info2">
+                  <span class="sub-title2">LEG:</span>
+                  <span class="sub-title2">{{ ((hitData.legShots / hitData.totalShots) * 100).toFixed(2) }}%</span>
+                </div>
+              </div>
+              <img src="@/assets/body.png">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
 </template>
 
 <style scoped>
-/* header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-} */
+@import "@/assets/tela1.css";
+@import "@/assets/tela2.css";
 </style>

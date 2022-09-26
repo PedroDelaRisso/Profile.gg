@@ -34,9 +34,9 @@
   --color-text: var(--vt-c-text-light-1);
 
   --section-gap: 160px;
-}
+} */
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --color-background: var(--vt-c-black);
     --color-background-soft: var(--vt-c-black-soft);
@@ -57,9 +57,9 @@
   margin: 0;
   position: relative;
   font-weight: normal;
-}
+} */
 
-body {
+/* body {
   min-height: 100vh;
   color: var(--color-text);
   background: var(--color-background);
